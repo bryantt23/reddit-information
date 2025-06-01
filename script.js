@@ -78,6 +78,6 @@ getTextButton.addEventListener("click", async () => {
     const redditUrlText = redditUrl.value
     const redditData = await fetchRedditThread(redditUrlText)
     redditOutput.textContent = JSON.stringify(redditData, null, 2)
-    copyToClipboard(JSON.stringify(redditData, null, 2));
+    // copyToClipboard(JSON.stringify(redditData, null, 2));
     oldRedditUrl.href = redditUrlText.replace("www", "old")
 })
