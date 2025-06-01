@@ -4,25 +4,27 @@ function logToPage(msg) {
         const line = document.createElement("div");
         line.textContent = typeof msg === "object" ? JSON.stringify(msg, null, 2) : msg;
         logDiv.appendChild(line);
+        logDiv.scrollTop = logDiv.scrollHeight;
     }
 }
 
 async function copyToClipboard(text) {
+    logToPage("📋 Attempting clipboard copy");
+
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
-            logToPage("Copied to clipboard!");
+            logToPage("✅ Copied to clipboard using navigator.clipboard!");
             return;
         } catch (err) {
-            logToPage("navigator.clipboard failed, falling back", err);
+            logToPage("⚠️ navigator.clipboard failed: " + err);
         }
     }
 
-    // 🔁 Fallback for mobile
+    logToPage("🔁 Fallback clipboard method triggered");
+
     const textArea = document.createElement("textarea");
     textArea.value = text;
-
-    // Required for iOS
     textArea.style.position = "fixed";
     textArea.style.top = "-9999px";
     textArea.setAttribute("readonly", "");
@@ -33,33 +35,36 @@ async function copyToClipboard(text) {
 
     try {
         const successful = document.execCommand("copy");
-        logToPage(successful ? "Copied (fallback)!" : "Copy failed");
+        logToPage(successful ? "✅ Copied (fallback)!" : "❌ Fallback copy failed");
     } catch (err) {
-        logToPage("Fallback copy failed: " + err);
+        logToPage("❌ Fallback copy exception: " + err);
     }
 
     document.body.removeChild(textArea);
 }
 
 async function fetchRedditThread(url) {
+    logToPage("🚀 fetchRedditThread called");
+
     try {
         const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
-        logToPage("✅ [Step 1] Cleaned URL: " + jsonUrl);
+        logToPage("🔗 Fetching: " + jsonUrl);
 
         const res = await fetch(jsonUrl);
-        logToPage("✅ [Step 2] Fetch response status: " + res.status);
+        logToPage("📡 Response received: status " + res.status);
 
-        if (!res.ok) throw new Error("Network response was not ok: " + res.status);
+        if (!res.ok) throw new Error("HTTP error: " + res.status);
 
         const data = await res.json();
-        logToPage("✅ [Step 3] Parsed JSON successfully");
+        logToPage("✅ JSON parsed");
 
         const post = data[0].data.children[0].data;
-        logToPage("✅ [Step 4] Post extracted: " + post.title);
+        logToPage("📄 Post title: " + post.title);
 
         const comments = data[1].data.children;
 
         function parseComments(comments) {
+            logToPage("🔍 Parsing " + comments.length + " comments");
             return comments.map(c => {
                 if (c.kind !== "t1") return;
                 const d = c.data;
@@ -76,7 +81,7 @@ async function fetchRedditThread(url) {
             }).filter(Boolean);
         }
 
-        const finalData = {
+        const result = {
             post: {
                 title: post.title,
                 author: post.author,
@@ -86,8 +91,8 @@ async function fetchRedditThread(url) {
             comments: parseComments(comments)
         };
 
-        logToPage("✅ [Step 5] Finished building finalData");
-        return finalData;
+        logToPage("✅ Final data built");
+        return result;
 
     } catch (err) {
         logToPage("❌ Error in fetchRedditThread: " + err.message);
@@ -95,23 +100,39 @@ async function fetchRedditThread(url) {
     }
 }
 
-const redditUrl = document.querySelector(".reddit-url"),
-    getTextButton = document.querySelector(".get-text"),
-    oldRedditUrl = document.querySelector(".old-url"),
-    redditOutput = document.querySelector(".reddit-output")
+document.addEventListener("DOMContentLoaded", () => {
+    logToPage("✅ DOMContentLoaded");
 
-getTextButton.addEventListener("click", async () => {
-    const redditUrlText = redditUrl.value;
-    logToPage("trying to get redditData: " + redditUrlText);
+    const redditUrl = document.querySelector(".reddit-url"),
+        getTextButton = document.querySelector(".get-text"),
+        oldRedditUrl = document.querySelector(".old-url"),
+        redditOutput = document.querySelector(".reddit-output");
 
-    const redditData = await fetchRedditThread(redditUrlText);
-    if (!redditData) {
-        logToPage("❌ No data returned");
-        return;
-    }
+    getTextButton.addEventListener("click", async () => {
+        logToPage("🟡 Button clicked");
 
-    logToPage("✅ Data fetched!");
-    redditOutput.textContent = JSON.stringify(redditData, null, 2);
-    // copyToClipboard(JSON.stringify(redditData, null, 2));
-    oldRedditUrl.href = redditUrlText.replace("www", "old");
+        const redditUrlText = redditUrl.value.trim();
+        if (!redditUrlText) {
+            logToPage("❌ No URL entered");
+            return;
+        }
+
+        logToPage("📥 URL input: " + redditUrlText);
+
+        const redditData = await fetchRedditThread(redditUrlText);
+        if (!redditData) {
+            logToPage("❌ No data returned");
+            return;
+        }
+
+        logToPage("✅ Reddit data fetched");
+        redditOutput.textContent = JSON.stringify(redditData, null, 2);
+
+        const oldUrl = redditUrlText.replace("www.", "old.");
+        oldRedditUrl.href = oldUrl;
+        logToPage("🔗 Old Reddit URL updated: " + oldUrl);
+
+        // Uncomment if you want to copy automatically:
+        // await copyToClipboard(JSON.stringify(redditData, null, 2));
+    });
 });
