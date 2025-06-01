@@ -106,6 +106,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const redditUrl = document.querySelector(".reddit-url"),
         getTextButton = document.querySelector(".get-text"),
         oldRedditUrl = document.querySelector(".old-url"),
+        jsonUrlLink = document.querySelector(".json-url"),
         redditOutput = document.querySelector(".reddit-output");
 
     getTextButton.addEventListener("click", async () => {
@@ -131,6 +132,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const oldUrl = redditUrlText.replace("www.", "old.");
         oldRedditUrl.href = oldUrl;
         logToPage("🔗 Old Reddit URL updated: " + oldUrl);
+
+        const jsonUrl = (redditUrlText.replace("www.", "old.").replace(/\/$/, "") + ".json");
+        jsonUrlLink.href = jsonUrl;
+        logToPage("📎 Reddit JSON URL: " + jsonUrl);
 
         // Uncomment if you want to copy automatically:
         // await copyToClipboard(JSON.stringify(redditData, null, 2));
