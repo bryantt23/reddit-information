@@ -44,14 +44,19 @@ async function copyToClipboard(text) {
 async function fetchRedditThread(url) {
     try {
         const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
-        logToPage("Fetching: " + jsonUrl);
+        logToPage("✅ [Step 1] Cleaned URL: " + jsonUrl);
 
         const res = await fetch(jsonUrl);
+        logToPage("✅ [Step 2] Fetch response status: " + res.status);
+
         if (!res.ok) throw new Error("Network response was not ok: " + res.status);
 
         const data = await res.json();
+        logToPage("✅ [Step 3] Parsed JSON successfully");
 
         const post = data[0].data.children[0].data;
+        logToPage("✅ [Step 4] Post extracted: " + post.title);
+
         const comments = data[1].data.children;
 
         function parseComments(comments) {
@@ -68,10 +73,10 @@ async function fetchRedditThread(url) {
                     body: d.body,
                     children
                 };
-            }).filter(Boolean); // removes undefined entries
+            }).filter(Boolean);
         }
 
-        return {
+        const finalData = {
             post: {
                 title: post.title,
                 author: post.author,
@@ -80,12 +85,15 @@ async function fetchRedditThread(url) {
             },
             comments: parseComments(comments)
         };
+
+        logToPage("✅ [Step 5] Finished building finalData");
+        return finalData;
+
     } catch (err) {
-        logToPage("❌ Error fetching Reddit thread: " + err.message);
+        logToPage("❌ Error in fetchRedditThread: " + err.message);
         return null;
     }
 }
-
 
 const redditUrl = document.querySelector(".reddit-url"),
     getTextButton = document.querySelector(".get-text"),
