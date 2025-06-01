@@ -35,7 +35,9 @@ async function fetchRedditThread(url) {
     }
 }
 
-const redditUrl = document.querySelector(".reddit-url"), getTextButton = document.querySelector(".get-text")
+const redditUrl = document.querySelector(".reddit-url"),
+    getTextButton = document.querySelector(".get-text"),
+    oldRedditUrl = document.querySelector(".old-url")
 
 getTextButton.addEventListener("click", async () => {
     const redditUrlText = redditUrl.value
@@ -43,4 +45,5 @@ getTextButton.addEventListener("click", async () => {
     const redditData = await fetchRedditThread(redditUrlText)
     console.log("🚀 ~ getTextButton.addEventListener ~ redditData:", redditData)
     navigator.clipboard.writeText(JSON.stringify(redditData))
+    oldRedditUrl.href = redditUrlText.replace("www", "old")
 })
