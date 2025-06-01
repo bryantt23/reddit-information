@@ -3,7 +3,12 @@ function copyToClipboard(text) {
     temp.value = text;
     document.body.appendChild(temp);
     temp.select();
-    document.execCommand("copy");
+    try {
+        document.execCommand("copy");
+        alert("Copied to clipboard!");
+    } catch (err) {
+        alert("Failed to copy: " + err);
+    }
     document.body.removeChild(temp);
 }
 
