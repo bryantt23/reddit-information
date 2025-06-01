@@ -42,41 +42,50 @@ async function copyToClipboard(text) {
 }
 
 async function fetchRedditThread(url) {
-    const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
-    const res = await fetch(jsonUrl);
-    const data = await res.json();
+    try {
+        const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
+        logToPage("Fetching: " + jsonUrl);
 
-    const post = data[0].data.children[0].data;
-    const comments = data[1].data.children;
+        const res = await fetch(jsonUrl);
+        if (!res.ok) throw new Error("Network response was not ok: " + res.status);
 
-    function parseComments(comments) {
-        return comments.map(c => {
-            if (c.kind !== "t1") return;
-            const d = c.data;
-            let children;
-            if (d.replies && d.replies.data) {
-                children = parseComments(d.replies.data.children);
-            }
-            return {
-                author: d.author,
-                upvotes: d.ups,
-                body: d.body,
-                children
-            }
-        });
-    };
+        const data = await res.json();
 
-    return {
-        post: {
-            title: post.title,
-            author: post.author,
-            upvotes: post.ups,
-            body: post.selftext
-        },
-        comments:
-            parseComments(comments)
+        const post = data[0].data.children[0].data;
+        const comments = data[1].data.children;
+
+        function parseComments(comments) {
+            return comments.map(c => {
+                if (c.kind !== "t1") return;
+                const d = c.data;
+                let children;
+                if (d.replies && d.replies.data) {
+                    children = parseComments(d.replies.data.children);
+                }
+                return {
+                    author: d.author,
+                    upvotes: d.ups,
+                    body: d.body,
+                    children
+                };
+            }).filter(Boolean); // removes undefined entries
+        }
+
+        return {
+            post: {
+                title: post.title,
+                author: post.author,
+                upvotes: post.ups,
+                body: post.selftext
+            },
+            comments: parseComments(comments)
+        };
+    } catch (err) {
+        logToPage("❌ Error fetching Reddit thread: " + err.message);
+        return null;
     }
 }
+
 
 const redditUrl = document.querySelector(".reddit-url"),
     getTextButton = document.querySelector(".get-text"),
@@ -84,11 +93,17 @@ const redditUrl = document.querySelector(".reddit-url"),
     redditOutput = document.querySelector(".reddit-output")
 
 getTextButton.addEventListener("click", async () => {
-    const redditUrlText = redditUrl.value
-    logToPage("trying to get redditData: " + redditUrlText)
-    const redditData = await fetchRedditThread(redditUrlText)
-    logToPage(redditData)
-    redditOutput.textContent = JSON.stringify(redditData, null, 2)
+    const redditUrlText = redditUrl.value;
+    logToPage("trying to get redditData: " + redditUrlText);
+
+    const redditData = await fetchRedditThread(redditUrlText);
+    if (!redditData) {
+        logToPage("❌ No data returned");
+        return;
+    }
+
+    logToPage("✅ Data fetched!");
+    redditOutput.textContent = JSON.stringify(redditData, null, 2);
     // copyToClipboard(JSON.stringify(redditData, null, 2));
-    oldRedditUrl.href = redditUrlText.replace("www", "old")
-})
+    oldRedditUrl.href = redditUrlText.replace("www", "old");
+});
