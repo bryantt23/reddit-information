@@ -50,7 +50,9 @@ async function fetchRedditThread(url) {
         const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
         logToPage("🔗 Fetching: " + jsonUrl);
 
-        const res = await fetch(jsonUrl);
+        const proxyUrl = `https://reddit-information-node.onrender.com/reddit?url=${encodeURIComponent(jsonUrl)}`;
+        const res = await fetch(proxyUrl);
+
         logToPage("📡 Response received: status " + res.status);
 
         if (!res.ok) throw new Error("HTTP error: " + res.status);
