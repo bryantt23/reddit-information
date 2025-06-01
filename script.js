@@ -120,6 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
         logToPage("📥 URL input: " + redditUrlText);
 
+        // ✅ Generate Old Reddit and JSON URL immediately
+        const oldUrl = redditUrlText.replace("www.", "old.");
+        oldRedditUrl.href = oldUrl;
+        logToPage("🔗 Old Reddit URL updated: " + oldUrl);
+
+        const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
+        jsonUrlLink.href = jsonUrl;
+        jsonUrlLink.textContent = jsonUrl;
+        logToPage("📎 Reddit JSON URL: " + jsonUrl);
+
+        // ⬇️ Optional fetch — doesn't block JSON URL generation
         const redditData = await fetchRedditThread(redditUrlText);
         if (!redditData) {
             logToPage("❌ No data returned");
@@ -128,16 +139,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         logToPage("✅ Reddit data fetched");
         redditOutput.textContent = JSON.stringify(redditData, null, 2);
-
-        const oldUrl = redditUrlText.replace("www.", "old.");
-        oldRedditUrl.href = oldUrl;
-        logToPage("🔗 Old Reddit URL updated: " + oldUrl);
-
-        const jsonUrl = (redditUrlText.replace("www.", "old.").replace(/\/$/, "") + ".json");
-        jsonUrlLink.href = jsonUrl;
-        logToPage("📎 Reddit JSON URL: " + jsonUrl);
-
-        // Uncomment if you want to copy automatically:
-        // await copyToClipboard(JSON.stringify(redditData, null, 2));
     });
+
 });
