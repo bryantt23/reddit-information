@@ -1,16 +1,37 @@
-function copyToClipboard(text) {
-    const temp = document.createElement("textarea");
-    temp.value = text;
-    document.body.appendChild(temp);
-    temp.select();
-    try {
-        document.execCommand("copy");
-        alert("Copied to clipboard!");
-    } catch (err) {
-        alert("Failed to copy: " + err);
+async function copyToClipboard(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
+            return;
+        } catch (err) {
+            console.warn("navigator.clipboard failed, falling back", err);
+        }
     }
-    document.body.removeChild(temp);
+
+    // 🔁 Fallback for mobile
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Required for iOS
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    textArea.setAttribute("readonly", "");
+
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand("copy");
+        alert(successful ? "Copied (fallback)!" : "Copy failed");
+    } catch (err) {
+        alert("Fallback copy failed: " + err);
+    }
+
+    document.body.removeChild(textArea);
 }
+
 
 
 async function fetchRedditThread(url) {
