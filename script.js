@@ -1,11 +1,20 @@
+function logToPage(msg) {
+    const logDiv = document.querySelector(".debug-log");
+    if (logDiv) {
+        const line = document.createElement("div");
+        line.textContent = typeof msg === "object" ? JSON.stringify(msg, null, 2) : msg;
+        logDiv.appendChild(line);
+    }
+}
+
 async function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
-            alert("Copied to clipboard!");
+            logToPage("Copied to clipboard!");
             return;
         } catch (err) {
-            console.warn("navigator.clipboard failed, falling back", err);
+            logToPage("navigator.clipboard failed, falling back", err);
         }
     }
 
@@ -24,9 +33,9 @@ async function copyToClipboard(text) {
 
     try {
         const successful = document.execCommand("copy");
-        alert(successful ? "Copied (fallback)!" : "Copy failed");
+        logToPage(successful ? "Copied (fallback)!" : "Copy failed");
     } catch (err) {
-        alert("Fallback copy failed: " + err);
+        logToPage("Fallback copy failed: " + err);
     }
 
     document.body.removeChild(textArea);
@@ -76,7 +85,9 @@ const redditUrl = document.querySelector(".reddit-url"),
 
 getTextButton.addEventListener("click", async () => {
     const redditUrlText = redditUrl.value
+    logToPage("trying to get redditData: " + redditUrlText)
     const redditData = await fetchRedditThread(redditUrlText)
+    logToPage(redditData)
     redditOutput.textContent = JSON.stringify(redditData, null, 2)
     // copyToClipboard(JSON.stringify(redditData, null, 2));
     oldRedditUrl.href = redditUrlText.replace("www", "old")
