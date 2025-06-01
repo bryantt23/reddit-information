@@ -1,3 +1,13 @@
+function copyToClipboard(text) {
+    const temp = document.createElement("textarea");
+    temp.value = text;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand("copy");
+    document.body.removeChild(temp);
+}
+
+
 async function fetchRedditThread(url) {
     const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
     const res = await fetch(jsonUrl);
@@ -43,7 +53,6 @@ getTextButton.addEventListener("click", async () => {
     const redditUrlText = redditUrl.value
     console.log("🚀 ~ getTextButton.addEventListener ~ redditUrlText:", redditUrlText)
     const redditData = await fetchRedditThread(redditUrlText)
-    console.log("🚀 ~ getTextButton.addEventListener ~ redditData:", redditData)
-    navigator.clipboard.writeText(JSON.stringify(redditData))
+    copyToClipboard(JSON.stringify(redditData, null, 2));
     oldRedditUrl.href = redditUrlText.replace("www", "old")
 })
