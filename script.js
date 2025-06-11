@@ -1,3 +1,9 @@
+const redditUrl = document.querySelector(".reddit-url"),
+    getTextButton = document.querySelector(".get-text"),
+    oldRedditUrl = document.querySelector(".old-url"),
+    jsonUrlLink = document.querySelector(".json-url"),
+    redditOutput = document.querySelector(".reddit-output");
+
 function logToPage(msg) {
     const logDiv = document.querySelector(".debug-log");
     if (logDiv) {
@@ -102,45 +108,42 @@ async function fetchRedditThread(url) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    logToPage("✅ DOMContentLoaded");
+const getPostInformation = async () => {
+    const redditUrlText = redditUrl.value.trim();
+    if (!redditUrlText) {
+        logToPage("❌ No URL entered");
+        return;
+    }
 
-    const redditUrl = document.querySelector(".reddit-url"),
-        getTextButton = document.querySelector(".get-text"),
-        oldRedditUrl = document.querySelector(".old-url"),
-        jsonUrlLink = document.querySelector(".json-url"),
-        redditOutput = document.querySelector(".reddit-output");
+    logToPage("📥 URL input: " + redditUrlText);
 
-    getTextButton.addEventListener("click", async () => {
-        logToPage("🟡 Button clicked");
+    // ✅ Generate Old Reddit and JSON URL immediately
+    const oldUrl = redditUrlText.replace("www.", "old.");
+    oldRedditUrl.href = oldUrl;
+    logToPage("🔗 Old Reddit URL updated: " + oldUrl);
 
-        const redditUrlText = redditUrl.value.trim();
-        if (!redditUrlText) {
-            logToPage("❌ No URL entered");
-            return;
-        }
+    const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
+    jsonUrlLink.href = jsonUrl;
+    jsonUrlLink.textContent = jsonUrl;
+    logToPage("📎 Reddit JSON URL: " + jsonUrl);
 
-        logToPage("📥 URL input: " + redditUrlText);
+    // ⬇️ Optional fetch — doesn't block JSON URL generation
+    const redditData = await fetchRedditThread(redditUrlText);
+    if (!redditData) {
+        logToPage("❌ No data returned");
+        return;
+    }
 
-        // ✅ Generate Old Reddit and JSON URL immediately
-        const oldUrl = redditUrlText.replace("www.", "old.");
-        oldRedditUrl.href = oldUrl;
-        logToPage("🔗 Old Reddit URL updated: " + oldUrl);
+    logToPage("✅ Reddit data fetched");
+    redditOutput.textContent = JSON.stringify(redditData, null, 2);
+}
 
-        const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
-        jsonUrlLink.href = jsonUrl;
-        jsonUrlLink.textContent = jsonUrl;
-        logToPage("📎 Reddit JSON URL: " + jsonUrl);
-
-        // ⬇️ Optional fetch — doesn't block JSON URL generation
-        const redditData = await fetchRedditThread(redditUrlText);
-        if (!redditData) {
-            logToPage("❌ No data returned");
-            return;
-        }
-
-        logToPage("✅ Reddit data fetched");
-        redditOutput.textContent = JSON.stringify(redditData, null, 2);
-    });
-
+getTextButton.addEventListener("click", () => {
+    getPostInformation()
 });
+
+redditUrl.addEventListener("keydown", (e) => {
+    if (e.code === "Enter") {
+        getPostInformation()
+    }
+})
