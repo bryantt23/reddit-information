@@ -136,6 +136,7 @@ const getPostInformation = async () => {
 
     logToPage("✅ Reddit data fetched");
     redditOutput.textContent = JSON.stringify(redditData, null, 2);
+    copyToClipboard(JSON.stringify(redditData))
 }
 
 getTextButton.addEventListener("click", () => {
