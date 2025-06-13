@@ -4,30 +4,19 @@ const redditUrl = document.querySelector(".reddit-url"),
     jsonUrlLink = document.querySelector(".json-url"),
     redditOutput = document.querySelector(".reddit-output");
 
-function logToPage(msg) {
-    const logDiv = document.querySelector(".debug-log");
-    if (logDiv) {
-        const line = document.createElement("div");
-        line.textContent = typeof msg === "object" ? JSON.stringify(msg, null, 2) : msg;
-        logDiv.appendChild(line);
-        logDiv.scrollTop = logDiv.scrollHeight;
-    }
+const logToPage = (message) => {
+    redditOutput.textContent = message
 }
 
 async function copyToClipboard(text) {
-    logToPage("📋 Attempting clipboard copy");
-
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
-            logToPage("✅ Copied to clipboard using navigator.clipboard!");
             return;
         } catch (err) {
             logToPage("⚠️ navigator.clipboard failed: " + err);
         }
     }
-
-    logToPage("🔁 Fallback clipboard method triggered");
 
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -41,7 +30,6 @@ async function copyToClipboard(text) {
 
     try {
         const successful = document.execCommand("copy");
-        logToPage(successful ? "✅ Copied (fallback)!" : "❌ Fallback copy failed");
     } catch (err) {
         logToPage("❌ Fallback copy exception: " + err);
     }
@@ -50,29 +38,21 @@ async function copyToClipboard(text) {
 }
 
 async function fetchRedditThread(url) {
-    logToPage("🚀 fetchRedditThread called");
-
     try {
+        logToPage("Attempting to fetch data...")
         const jsonUrl = url.endsWith(".json") ? url : url.replace(/\/$/, "") + ".json";
-        logToPage("🔗 Fetching: " + jsonUrl);
-
         const proxyUrl = `https://reddit-information-node.onrender.com/reddit?url=${encodeURIComponent(jsonUrl)}`;
         const res = await fetch(proxyUrl);
-
-        logToPage("📡 Response received: status " + res.status);
 
         if (!res.ok) throw new Error("HTTP error: " + res.status);
 
         const data = await res.json();
-        logToPage("✅ JSON parsed");
 
         const post = data[0].data.children[0].data;
-        logToPage("📄 Post title: " + post.title);
 
         const comments = data[1].data.children;
 
         function parseComments(comments) {
-            logToPage("🔍 Parsing " + comments.length + " comments");
             return comments.map(c => {
                 if (c.kind !== "t1") return;
                 const d = c.data;
@@ -99,11 +79,9 @@ async function fetchRedditThread(url) {
             comments: parseComments(comments)
         };
 
-        logToPage("✅ Final data built");
         return result;
 
     } catch (err) {
-        logToPage("❌ Error in fetchRedditThread: " + err.message);
         return null;
     }
 }
@@ -115,17 +93,13 @@ const getPostInformation = async () => {
         return;
     }
 
-    logToPage("📥 URL input: " + redditUrlText);
-
     // ✅ Generate Old Reddit and JSON URL immediately
     const oldUrl = redditUrlText.replace("www.", "old.");
     oldRedditUrl.href = oldUrl;
-    logToPage("🔗 Old Reddit URL updated: " + oldUrl);
 
     const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
     jsonUrlLink.href = jsonUrl;
     jsonUrlLink.textContent = jsonUrl;
-    logToPage("📎 Reddit JSON URL: " + jsonUrl);
 
     // ⬇️ Optional fetch — doesn't block JSON URL generation
     const redditData = await fetchRedditThread(redditUrlText);
@@ -134,7 +108,6 @@ const getPostInformation = async () => {
         return;
     }
 
-    logToPage("✅ Reddit data fetched");
     redditOutput.textContent = JSON.stringify(redditData, null, 2);
     copyToClipboard(JSON.stringify(redditData))
 }
