@@ -1,6 +1,7 @@
 const redditUrl = document.querySelector(".reddit-url"),
     getTextButton = document.querySelector(".get-text"),
     oldRedditUrl = document.querySelector(".old-url"),
+    inputRedditUrl = document.querySelector(".input-url"),
     jsonUrlLink = document.querySelector(".json-url"),
     redditOutput = document.querySelector(".reddit-output");
 
@@ -92,6 +93,8 @@ const getPostInformation = async () => {
         logToPage("❌ No URL entered");
         return;
     }
+
+    inputRedditUrl.href = redditUrlText
 
     // ✅ Generate Old Reddit and JSON URL immediately
     const oldUrl = redditUrlText.replace("www.", "old.");
