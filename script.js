@@ -88,31 +88,43 @@ async function fetchRedditThread(url) {
 }
 
 const getPostInformation = async () => {
-    const redditUrlText = redditUrl.value.trim();
-    if (!redditUrlText) {
-        logToPage("❌ No URL entered");
-        return;
+    try {
+        const redditUrlText = redditUrl.value.trim();
+        if (!redditUrlText) {
+            logToPage("❌ No URL entered");
+            return;
+        }
+
+        const url = new URL(redditUrlText)
+        if (!url.hostname.includes("reddit.com")) {
+            logToPage("❌ URL must be from reddit.com");
+            return
+        }
+
+        inputRedditUrl.href = redditUrlText
+
+        // ✅ Generate Old Reddit and JSON URL immediately
+        const oldUrl = redditUrlText.replace("www.", "old.");
+        oldRedditUrl.href = oldUrl;
+
+        const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
+        jsonUrlLink.href = jsonUrl;
+        jsonUrlLink.textContent = jsonUrl;
+
+        // ⬇️ Optional fetch — doesn't block JSON URL generation
+        const redditData = await fetchRedditThread(redditUrlText);
+        if (!redditData) {
+            logToPage("❌ No data returned");
+            return;
+        }
+
+        logToPage("✅ Reddit page data copied to clipboard");
+        copyToClipboard(JSON.stringify(redditData))
+
+    } catch (err) {
+        logToPage("❌ Invalid URL format");
+        console.error(err)
     }
-
-    inputRedditUrl.href = redditUrlText
-
-    // ✅ Generate Old Reddit and JSON URL immediately
-    const oldUrl = redditUrlText.replace("www.", "old.");
-    oldRedditUrl.href = oldUrl;
-
-    const jsonUrl = oldUrl.replace(/\/$/, "") + ".json";
-    jsonUrlLink.href = jsonUrl;
-    jsonUrlLink.textContent = jsonUrl;
-
-    // ⬇️ Optional fetch — doesn't block JSON URL generation
-    const redditData = await fetchRedditThread(redditUrlText);
-    if (!redditData) {
-        logToPage("❌ No data returned");
-        return;
-    }
-
-    logToPage("Reddit page data copied to clipboard")
-    copyToClipboard(JSON.stringify(redditData))
 }
 
 getTextButton.addEventListener("click", () => {
