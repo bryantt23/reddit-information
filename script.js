@@ -108,7 +108,7 @@ const getPostInformation = async () => {
         return;
     }
 
-    redditOutput.textContent = JSON.stringify(redditData, null, 2);
+    logToPage("Reddit page data copied to clipboard")
     copyToClipboard(JSON.stringify(redditData))
 }
 
