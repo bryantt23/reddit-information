@@ -9,33 +9,30 @@ const logToPage = (message) => {
     redditOutput.textContent = message
 }
 
+const fallbackCopyToClipboard = text => {
+    const tempInput = document.createElement("textarea")
+    tempInput.value = text
+    document.body.appendChild(tempInput)
+    tempInput.select()
+    document.execCommand('copy')
+    document.body.removeChild(tempInput)
+}
+
 async function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
             return;
         } catch (err) {
-            logToPage("⚠️ navigator.clipboard failed: " + err);
+            console.warn("Clipboard API failed, using fallback:", err);
+            fallbackCopyToClipboard(text);
+            logToPage("✅ Reddit data copied using fallback");
+            return
         }
     }
 
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.top = "-9999px";
-    textArea.setAttribute("readonly", "");
-
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-        const successful = document.execCommand("copy");
-    } catch (err) {
-        logToPage("❌ Fallback copy exception: " + err);
-    }
-
-    document.body.removeChild(textArea);
+    fallbackCopyToClipboard(text);
+    logToPage("✅ Reddit data copied using fallback");
 }
 
 async function fetchRedditThread(url) {
@@ -119,8 +116,7 @@ const getPostInformation = async () => {
         }
 
         logToPage("✅ Reddit page data copied to clipboard");
-        copyToClipboard(JSON.stringify(redditData))
-
+        await copyToClipboard(JSON.stringify(redditData))
     } catch (err) {
         logToPage("❌ Invalid URL format");
         console.error(err)
