@@ -108,6 +108,7 @@ const getPostInformation = async () => {
         logToPage("❌ Invalid URL format");
         console.error(err)
     }
+    redditUrl.value = ''
 }
 
 getTextButton.addEventListener("click", () => {
