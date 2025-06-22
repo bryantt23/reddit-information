@@ -9,30 +9,17 @@ const logToPage = (message) => {
     redditOutput.textContent = message
 }
 
-const fallbackCopyToClipboard = text => {
-    const tempInput = document.createElement("textarea")
-    tempInput.value = text
-    document.body.appendChild(tempInput)
-    tempInput.select()
-    document.execCommand('copy')
-    document.body.removeChild(tempInput)
-}
-
 async function copyToClipboard(text) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
         try {
             await navigator.clipboard.writeText(text);
             return;
         } catch (err) {
-            console.warn("Clipboard API failed, using fallback:", err);
-            fallbackCopyToClipboard(text);
-            logToPage("✅ Reddit data copied using fallback");
+            console.warn("Clipboard API failed:", err);
+            logToPage("❌ Clipboard API failed: " + err.message);
             return
         }
     }
-
-    fallbackCopyToClipboard(text);
-    logToPage("✅ Reddit data copied using fallback");
 }
 
 async function fetchRedditThread(url) {
